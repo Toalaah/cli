@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"fmt"
 	"sort"
+	"text/template"
 )
 
 const (
@@ -29,16 +31,22 @@ type renderCompletion func(*Command) (string, error)
 
 func getCompletion(s string) renderCompletion {
 	return func(c *Command) (string, error) {
-		b, err := autoCompleteFS.ReadFile(s)
-		return string(b), err
+		t, err := template.ParseFS(autoCompleteFS, s)
+		if err != nil {
+			return "", err
+		}
+		buf := &bytes.Buffer{}
+		t.Execute(buf, c.Root())
+		return buf.String(), err
 	}
 }
 
-func buildCompletionCommand() *Command {
+func buildCompletionCommand(hidden bool) *Command {
 	return &Command{
 		Name:   completionCommandName,
-		Hidden: true,
+		Hidden: hidden,
 		Action: completionCommandAction,
+		Usage:  "Generate and output completion scripts for various shells",
 	}
 }
 

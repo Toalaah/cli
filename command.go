@@ -60,6 +60,9 @@ type Command struct {
 	EnableShellCompletion bool `json:"-"`
 	// Shell Completion generation command name
 	ShellCompletionCommandName string `json:"-"`
+	// Boolean to hide the shell completion command
+	// No effect if EnableShellCompletion is disabled
+	HideShellCompletionCommand bool `json:"hideShellCompletionCommand"`
 	// The function to call when checking for shell command completions
 	ShellComplete ShellCompleteFunc `json:"-"`
 	// An action to execute before any subcommands are run, but after the context is ready
@@ -257,7 +260,7 @@ func (cmd *Command) setupDefaults(osArgs []string) {
 	}
 
 	if cmd.EnableShellCompletion || cmd.Root().shellCompletion {
-		completionCommand := buildCompletionCommand()
+		completionCommand := buildCompletionCommand(cmd.HideShellCompletionCommand)
 
 		if cmd.ShellCompletionCommandName != "" {
 			tracef(
